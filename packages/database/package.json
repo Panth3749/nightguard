@@ -7,7 +7,7 @@
     "build": "tsc",
     "generate": "prisma generate",
     "generate:sqlite": "prisma generate --schema=prisma/schema.sqlite.prisma",
-    "migrate": "prisma migrate deploy",
+    "migrate": "prisma db push --accept-data-loss",
     "migrate:dev": "prisma migrate dev",
     "push:sqlite": "prisma db push --schema=prisma/schema.sqlite.prisma",
     "seed": "node dist/seed.js",
@@ -15,10 +15,10 @@
   },
   "dependencies": {
     "@prisma/client": "^5.13.0",
+    "prisma": "^5.13.0",
     "@types/node": "^20.12.7"
   },
   "devDependencies": {
-    "prisma": "^5.13.0",
     "typescript": "^5.4.5"
   }
 }

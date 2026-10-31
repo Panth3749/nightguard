@@ -18,8 +18,8 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm install && npm run generate --workspace=@nightguard/database && npm run build --workspaces
-    startCommand: npm run migrate --workspace=@nightguard/database && npm run start --workspace=@nightguard/api
+    buildCommand: npm install --include=dev && npm run build:api
+    startCommand: npm run db:migrate && npm run db:seed && npm run start:api
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
@@ -47,17 +47,17 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm install && npm run build --workspace=@nightguard/shared && npm run build --workspace=@nightguard/web
-    startCommand: npm run start --workspace=@nightguard/web
+    buildCommand: npm install --include=dev && npm run build:web
+    startCommand: npm run start:web
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3000
       - key: NEXT_PUBLIC_API_URL
-        value: https://nightguard-api.onrender.com
+        value: https://nightguard-api-6ukp.onrender.com
       - key: NEXT_PUBLIC_WS_URL
-        value: wss://nightguard-api.onrender.com
+        value: wss://nightguard-api-6ukp.onrender.com
 
   # ----------------------------------------------------------------------------
   # Note: The background scheduler engine runs inside nightguard-api for free tier.

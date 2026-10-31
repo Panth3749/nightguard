@@ -10,7 +10,10 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build:packages": "npm run build --workspace=@nightguard/shared && npm run build --workspace=@nightguard/security && npm run generate --workspace=@nightguard/database && npm run build --workspace=@nightguard/database && npm run build --workspace=@nightguard/router-adapters && npm run build --workspace=@nightguard/scheduler",
+    "build:api": "npm run build:packages && npm run build --workspace=@nightguard/api",
+    "build:web": "npm run build --workspace=@nightguard/shared && npm run build --workspace=@nightguard/web",
+    "build": "npm run build:api && npm run build:web",
     "dev": "npm run dev --workspace=@nightguard/api",
     "dev:all": "concurrently \"npm run dev --workspace=@nightguard/api\" \"npm run dev --workspace=@nightguard/web\" \"npm run dev --workspace=@nightguard/worker\"",
     "test": "vitest run",
