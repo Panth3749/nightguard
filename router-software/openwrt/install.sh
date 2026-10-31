@@ -8,7 +8,7 @@
 set -e
 
 TOKEN=""
-API_HOST="https://api.nightguard.render.com"
+API_HOST="https://nightguard-api-6ukp.onrender.com"
 
 while [ "$#" -gt 0 ]; do
     case "$1" in

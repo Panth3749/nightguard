@@ -32,7 +32,8 @@ export default function SettingsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const openWrtManualCommand = `opkg update && opkg install nftables curl\ncurl -sSL https://api.nightguard.render.com/agent/install.sh | sh`;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://nightguard-api-6ukp.onrender.com';
+  const openWrtManualCommand = `opkg update && opkg install nftables curl\ncurl -sSL ${apiUrl}/agent/install.sh | sh`;
 
   const copyScript = () => {
     navigator.clipboard.writeText(openWrtManualCommand);

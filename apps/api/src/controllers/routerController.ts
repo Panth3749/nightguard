@@ -95,7 +95,10 @@ export class RouterController {
       }
     }
 
-    const installCommand = `sh <(curl -sSL https://api.nightguard.render.com/agent/install.sh) --token ${pairingToken}`;
+    const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+    const host = req.get('host') || 'nightguard-api-6ukp.onrender.com';
+    const baseUrl = `${protocol}://${host}`;
+    const installCommand = `sh <(curl -sSL ${baseUrl}/agent/install.sh) --token ${pairingToken}`;
 
     await prisma.auditLog.create({
       data: {
