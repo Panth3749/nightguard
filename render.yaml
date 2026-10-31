@@ -7,7 +7,7 @@ databases:
   - name: nightguard-postgres
     databaseName: nightguard
     user: nightguard
-    plan: starter
+    plan: free
 
 services:
   # ----------------------------------------------------------------------------
@@ -16,7 +16,7 @@ services:
   - type: web
     name: nightguard-api
     runtime: node
-    plan: starter
+    plan: free
     region: oregon
     buildCommand: npm install && npm run generate --workspace=@nightguard/database && npm run build --workspaces
     startCommand: npm run migrate --workspace=@nightguard/database && npm run start --workspace=@nightguard/api
@@ -37,10 +37,7 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: WEB_URL
-        fromService:
-          type: web
-          name: nightguard-web
-          property: url
+        value: https://nightguard-web.onrender.com
 
   # ----------------------------------------------------------------------------
   # 2. Frontend Web Service (Next.js 14)
@@ -48,7 +45,7 @@ services:
   - type: web
     name: nightguard-web
     runtime: node
-    plan: starter
+    plan: free
     region: oregon
     buildCommand: npm install && npm run build --workspace=@nightguard/shared && npm run build --workspace=@nightguard/web
     startCommand: npm run start --workspace=@nightguard/web
@@ -58,30 +55,25 @@ services:
       - key: PORT
         value: 3000
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: nightguard-api
-          property: url
+        value: https://nightguard-api.onrender.com
       - key: NEXT_PUBLIC_WS_URL
-        fromService:
-          type: web
-          name: nightguard-api
-          property: url
+        value: wss://nightguard-api.onrender.com
 
   # ----------------------------------------------------------------------------
-  # 3. Persistent Background Scheduler & Policy Worker
+  # Note: The background scheduler engine runs inside nightguard-api for free tier.
+  # For dedicated worker instances on paid plans, uncomment below:
   # ----------------------------------------------------------------------------
-  - type: worker
-    name: nightguard-worker
-    runtime: node
-    plan: starter
-    region: oregon
-    buildCommand: npm install && npm run build --workspaces
-    startCommand: npm run start --workspace=@nightguard/worker
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: nightguard-postgres
-          property: connectionString
+  # - type: worker
+  #   name: nightguard-worker
+  #   runtime: node
+  #   plan: starter
+  #   region: oregon
+  #   buildCommand: npm install && npm run build --workspaces
+  #   startCommand: npm run start --workspace=@nightguard/worker
+  #   envVars:
+  #     - key: NODE_ENV
+  #       value: production
+  #     - key: DATABASE_URL
+  #       fromDatabase:
+  #         name: nightguard-postgres
+  #         property: connectionString
