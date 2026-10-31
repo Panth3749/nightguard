@@ -81,6 +81,17 @@ export default function DevicesPage() {
       onRefresh={fetchDevices}
     >
       <div className="space-y-6">
+        {/* Simulation Environment Notice */}
+        {devices.some((d) => d.router?.isSimulated) && (
+          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
+            <Shield className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <div className="text-xs text-warm-300 leading-relaxed">
+              <span className="font-semibold text-amber-400">Virtual Simulation Mode: </span>
+              These devices are simulated to let you test schedules and rule enforcement safely without modifying your physical router. Cloud servers cannot reach private home LAN addresses (`192.168.1.1`) directly. To discover real devices on your home Wi-Fi, run the agent on your router or use the local network bridge.
+            </div>
+          </div>
+        )}
+
         {/* Filter & Search Bar */}
         <div className="p-4 rounded-xl bg-graphite-900 border border-graphite-800 flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative w-full md:w-80">
@@ -158,6 +169,13 @@ export default function DevicesPage() {
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-warm-100 text-xs">
                               {device.friendlyName}
+                            </span>
+                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider ${
+                              device.router?.isSimulated
+                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            }`}>
+                              {device.router?.isSimulated ? 'SIMULATED' : 'LIVE'}
                             </span>
                             <button
                               onClick={() => {
