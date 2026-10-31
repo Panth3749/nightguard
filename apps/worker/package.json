@@ -1,0 +1,23 @@
+{
+  "name": "@nightguard/worker",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "start": "node dist/index.js",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@nightguard/database": "*",
+    "@nightguard/router-adapters": "*",
+    "@nightguard/scheduler": "*",
+    "@nightguard/security": "*",
+    "@nightguard/shared": "*",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.5"
+  }
+}
