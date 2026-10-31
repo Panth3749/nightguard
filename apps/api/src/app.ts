@@ -11,6 +11,9 @@ import { config } from './config';
 
 const app = express();
 
+// Trust reverse proxy (Render / Cloudflare)
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(
   helmet({
@@ -35,14 +38,26 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Limit each IP to 1000 requests per windowMs
+// Auth rate limiting to prevent brute-force attacks
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  message: { success: false, error: 'Too many authentication attempts. Please try again later.' },
 });
-app.use('/api', limiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
+// General rate limiter (generous to avoid false 429s on dashboard operations, skips health check)
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path.includes('/health'),
+});
+app.use('/api', generalLimiter);
 
 // Serve OpenWrt agent installer directly
 app.get('/agent/install.sh', (req, res) => {
