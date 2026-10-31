@@ -96,7 +96,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="text-xs font-medium text-warm-300 block mb-1.5">
-                Master Password (min. 8 characters, uppercase & digit)
+                Master Password
               </label>
               <div className="relative">
                 <input
@@ -108,6 +108,17 @@ export default function RegisterPage() {
                   className="w-full pl-9 pr-3.5 py-2 rounded-lg bg-graphite-950 border border-graphite-800 text-warm-50 text-xs focus:outline-none focus:border-amber-500/50"
                 />
                 <Lock className="w-4 h-4 text-warm-500 absolute left-3 top-2.5" />
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded ${password.length >= 8 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-graphite-950 text-warm-500 border border-graphite-800'}`}>
+                  {password.length >= 8 ? '✓' : '•'} 8+ characters
+                </span>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded ${/[A-Z]/.test(password) ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-graphite-950 text-warm-500 border border-graphite-800'}`}>
+                  {/[A-Z]/.test(password) ? '✓' : '•'} 1 uppercase (A-Z)
+                </span>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded ${/[0-9]/.test(password) ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-graphite-950 text-warm-500 border border-graphite-800'}`}>
+                  {/[0-9]/.test(password) ? '✓' : '•'} 1 number (0-9)
+                </span>
               </div>
             </div>
 

@@ -37,7 +37,10 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const errorMsg = data.error || data.message || `Request failed with status ${response.status}`;
+    let errorMsg = data.error || data.message || `Request failed with status ${response.status}`;
+    if (Array.isArray(data.details) && data.details.length > 0) {
+      errorMsg = data.details.map((d: any) => d.message).join('. ');
+    }
     throw new Error(errorMsg);
   }
 
