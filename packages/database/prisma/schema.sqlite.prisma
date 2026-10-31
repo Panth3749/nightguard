@@ -1,0 +1,299 @@
+// ==============================================================================
+// NightGuard Prisma Schema (SQLite fallback for local testing without Postgres)
+// ==============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  passwordHash String
+  name         String
+  role         String      @default("ADMIN")
+  timezone     String      @default("UTC")
+  isVerified   Boolean     @default(true)
+  resetToken   String?
+  resetExpires DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  sessions     Session[]
+  networks     Network[]
+  schedules    Schedule[]
+  auditLogs    AuditLog[]
+  notifications Notification[]
+
+  @@index([email])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Network {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  ssid        String
+  description String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routers     Router[]
+  devices     Device[]
+  schedules   Schedule[]
+  auditLogs   AuditLog[]
+
+  @@index([userId])
+}
+
+model Router {
+  id               String                 @id @default(uuid())
+  networkId        String
+  model            String                 @default("OpenWrt Compatible Gateway")
+  firmwareVersion  String                 @default("OpenWrt 23.05.2")
+  macAddress       String?
+  localIpAddress   String?
+  connectionStatus String                 @default("PAIRING")
+  adapterType      String                 @default("OPENWRT")
+  pairingToken     String                 @unique
+  pairingExpiresAt DateTime
+  isSimulated      Boolean                @default(false)
+  lastHeartbeatAt  DateTime?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  network          Network                @relation(fields: [networkId], references: [id], onDelete: Cascade)
+  integration      RouterIntegration?
+  capabilities     RouterCapability?
+  devices          Device[]
+  commands         RouterCommand[]
+  restrictionEvents RestrictionEvent[]
+
+  @@index([networkId])
+  @@index([pairingToken])
+}
+
+model RouterIntegration {
+  id                   String   @id @default(uuid())
+  routerId             String   @unique
+  protocol             String   @default("WSS_AGENT")
+  encryptedCredentials String?
+  agentVersion         String?
+  port                 Int      @default(443)
+  tlsEnabled           Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  router               Router   @relation(fields: [routerId], references: [id], onDelete: Cascade)
+}
+
+model RouterCapability {
+  id                         String   @id @default(uuid())
+  routerId                   String   @unique
+  supportsNftables           Boolean  @default(true)
+  supportsUbus               Boolean  @default(true)
+  supportsPerDeviceBandwidth Boolean  @default(false)
+  supportsDnsBlocking        Boolean  @default(true)
+  supportsVlan               Boolean  @default(false)
+  supportsGuestIsolation     Boolean  @default(false)
+  maxManagedDevices          Int      @default(256)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  router                     Router   @relation(fields: [routerId], references: [id], onDelete: Cascade)
+}
+
+model Device {
+  id                String                @id @default(uuid())
+  networkId         String
+  routerId          String?
+  macAddress        String
+  currentIpAddress  String?
+  hostname          String?
+  friendlyName      String
+  deviceType        String                @default("OTHER")
+  isManaged         Boolean               @default(false)
+  restrictionStatus String                @default("NOT_MANAGED")
+  connectionStatus  String                @default("CONNECTED")
+  firstSeenAt       DateTime              @default(now())
+  lastSeenAt        DateTime              @default(now())
+  notes             String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  network           Network               @relation(fields: [networkId], references: [id], onDelete: Cascade)
+  router            Router?               @relation(fields: [routerId], references: [id], onDelete: SetNull)
+  scheduleDevices   ScheduleDevice[]
+  restrictionPolicy RestrictionPolicy?
+  restrictionEvents RestrictionEvent[]
+  history           DeviceConnectionHistory[]
+
+  @@unique([networkId, macAddress])
+  @@index([networkId])
+  @@index([macAddress])
+  @@index([restrictionStatus])
+}
+
+model Schedule {
+  id             String                 @id @default(uuid())
+  userId         String
+  networkId      String
+  name           String
+  startTime      String                 // "22:00" 24-hr format
+  endTime        String                 // "07:00" 24-hr format
+  daysOfWeek     String                 // JSON stringified array of days: ["MONDAY", "TUESDAY", ...]
+  timezone       String                 @default("UTC")
+  isEnabled      Boolean                @default(true)
+  isPaused       Boolean                @default(false)
+  activeOverride String                 @default("NONE")
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  network        Network                @relation(fields: [networkId], references: [id], onDelete: Cascade)
+  scheduleDevices ScheduleDevice[]
+  restrictionEvents RestrictionEvent[]
+
+  @@index([userId])
+  @@index([networkId])
+}
+
+model ScheduleDevice {
+  id         String   @id @default(uuid())
+  scheduleId String
+  deviceId   String
+  createdAt  DateTime @default(now())
+
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  device     Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, deviceId])
+  @@index([scheduleId])
+  @@index([deviceId])
+}
+
+model RestrictionPolicy {
+  id                String   @id @default(uuid())
+  deviceId          String   @unique
+  currentScheduleId String?
+  desiredState      String   @default("UNRESTRICTED")
+  actualState       String   @default("UNRESTRICTED")
+  lastAppliedAt     DateTime?
+  lastVerifiedAt    DateTime?
+  failureReason     String?
+  retryCount        Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  device            Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId])
+}
+
+model RestrictionEvent {
+  id          String   @id @default(uuid())
+  scheduleId  String?
+  deviceId    String
+  routerId    String?
+  eventType   String
+  status      String
+  triggeredAt DateTime @default(now())
+  completedAt DateTime?
+  details     String?
+  createdAt   DateTime @default(now())
+
+  device      Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  schedule    Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  router      Router?   @relation(fields: [routerId], references: [id], onDelete: SetNull)
+
+  @@index([deviceId])
+  @@index([scheduleId])
+  @@index([triggeredAt])
+}
+
+model RouterCommand {
+  id              String              @id @default(uuid())
+  routerId        String
+  commandType     String
+  targetMac       String?
+  payload         String?
+  status          String              @default("PENDING")
+  idempotencyKey  String              @unique
+  responsePayload String?
+  sentAt          DateTime?
+  executedAt      DateTime?
+  createdAt       DateTime            @default(now())
+
+  router          Router              @relation(fields: [routerId], references: [id], onDelete: Cascade)
+
+  @@index([routerId])
+  @@index([idempotencyKey])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  networkId  String?
+  action     String
+  entityType String
+  entityId   String?
+  details    String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  network    Network? @relation(fields: [networkId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([networkId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("INFO")
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model DeviceConnectionHistory {
+  id        String   @id @default(uuid())
+  deviceId  String
+  event     String
+  ipAddress String?
+  timestamp DateTime @default(now())
+
+  device    Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId])
+  @@index([timestamp])
+}

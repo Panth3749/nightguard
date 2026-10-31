@@ -1,0 +1,23 @@
+{
+  "name": "@nightguard/database",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "generate": "prisma generate",
+    "generate:sqlite": "prisma generate --schema=prisma/schema.sqlite.prisma",
+    "migrate": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev",
+    "push:sqlite": "prisma db push --schema=prisma/schema.sqlite.prisma",
+    "seed": "node dist/seed.js",
+    "seed:sqlite": "node dist/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.13.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.13.0",
+    "typescript": "^5.4.5"
+  }
+}

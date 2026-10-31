@@ -1,0 +1,31 @@
+{
+  "name": "nightguard-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NightGuard - Wi-Fi-based Digital Wellbeing and Device Access Management",
+  "author": "Panth Patel",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev --workspace=@nightguard/api",
+    "dev:all": "concurrently \"npm run dev --workspace=@nightguard/api\" \"npm run dev --workspace=@nightguard/web\" \"npm run dev --workspace=@nightguard/worker\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "npm run lint --workspaces --if-present",
+    "db:generate": "npm run generate --workspace=@nightguard/database",
+    "db:migrate": "npm run migrate --workspace=@nightguard/database",
+    "db:seed": "npm run seed --workspace=@nightguard/database",
+    "start:api": "npm run start --workspace=@nightguard/api",
+    "start:web": "npm run start --workspace=@nightguard/web",
+    "start:worker": "npm run start --workspace=@nightguard/worker"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.4.5"
+  }
+}
