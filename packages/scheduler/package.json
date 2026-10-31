@@ -13,13 +13,13 @@
     "@nightguard/router-adapters": "*",
     "@nightguard/security": "*",
     "@nightguard/shared": "*",
+    "@types/node": "^20.12.7",
     "bullmq": "^5.7.1",
     "date-fns": "^3.6.0",
     "date-fns-tz": "^3.1.3",
     "ioredis": "^5.4.1"
   },
   "devDependencies": {
-    "@types/ioredis": "^5.0.0",
     "typescript": "^5.4.5"
   }
 }
