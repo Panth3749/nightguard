@@ -48,6 +48,10 @@ export const PairRouterSchema = z.object({
   networkId: z.string().uuid('Invalid network ID'),
   adapterType: z.nativeEnum(RouterAdapterType).default(RouterAdapterType.OPENWRT),
   isSimulated: z.boolean().default(false),
+  model: z.string().optional(),
+  gatewayIp: z.string().optional(),
+  adminUsername: z.string().optional(),
+  adminPassword: z.string().optional(),
 });
 
 export const RouterHeartbeatSchema = z.object({

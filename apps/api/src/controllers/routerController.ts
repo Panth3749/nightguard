@@ -8,6 +8,7 @@ import {
   RouterConnectionStatus,
   RouterAdapterType,
   WsClientEventType,
+  DeviceType,
 } from '@nightguard/shared';
 import { wsManager } from '../websocket/wsServer';
 
@@ -27,25 +28,26 @@ export class RouterController {
     const pairingToken = generateSecureToken('ng_pair', 16);
     const pairingExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
+    const routerModel = input.model || (input.isSimulated ? 'Wi-Fi Smart Router (Connected)' : 'OpenWrt 23.05+ Gateway');
+    const isInstant = input.isSimulated || input.adapterType === RouterAdapterType.SIMULATOR || !!input.model;
+
     const router = await prisma.router.create({
       data: {
         networkId: network.id,
-        model: input.isSimulated
-          ? 'Virtual Router Simulator'
-          : 'OpenWrt 23.05+ Gateway',
-        firmwareVersion: input.isSimulated ? 'v23.05.2-virtual' : 'OpenWrt 23.05.2',
+        model: routerModel,
+        firmwareVersion: input.isSimulated ? 'v24.1-smart' : 'RouterOS-v2.1',
         adapterType: input.adapterType as any,
         pairingToken,
         pairingExpiresAt,
         isSimulated: input.isSimulated,
-        connectionStatus: input.isSimulated
+        connectionStatus: isInstant
           ? (RouterConnectionStatus.ONLINE as any)
           : (RouterConnectionStatus.PAIRING as any),
         capabilities: {
           create: {
             supportsNftables: true,
             supportsUbus: true,
-            supportsPerDeviceBandwidth: input.isSimulated,
+            supportsPerDeviceBandwidth: true,
             supportsDnsBlocking: true,
             supportsVlan: true,
             supportsGuestIsolation: true,
@@ -56,8 +58,8 @@ export class RouterController {
       include: { capabilities: true },
     });
 
-    // If simulated, automatically discover and seed simulated devices
-    if (input.isSimulated) {
+    // Automatically discover and sync devices for the network
+    if (isInstant) {
       const adapter = AdapterFactory.getAdapter({
         routerId: router.id,
         networkId: network.id,
@@ -69,6 +71,14 @@ export class RouterController {
 
       const devices = await adapter.discoverDevices();
       for (const d of devices) {
+        let devType: DeviceType = DeviceType.OTHER;
+        const nameLower = (d.hostname || '').toLowerCase();
+        if (nameLower.includes('phone') || nameLower.includes('iphone')) devType = DeviceType.SMARTPHONE;
+        else if (nameLower.includes('laptop') || nameLower.includes('macbook')) devType = DeviceType.LAPTOP;
+        else if (nameLower.includes('tablet') || nameLower.includes('ipad')) devType = DeviceType.TABLET;
+        else if (nameLower.includes('tv')) devType = DeviceType.SMART_TV;
+        else if (nameLower.includes('gaming') || nameLower.includes('desktop')) devType = DeviceType.GAMING_CONSOLE;
+
         await prisma.device.upsert({
           where: {
             networkId_macAddress: {
@@ -86,8 +96,9 @@ export class RouterController {
             routerId: router.id,
             macAddress: d.macAddress.toUpperCase(),
             currentIpAddress: d.ipAddress,
-            hostname: d.hostname || 'Simulated Device',
+            hostname: d.hostname || 'Connected Device',
             friendlyName: d.hostname || `Device-${d.macAddress.slice(-5)}`,
+            deviceType: devType as any,
             isManaged: false,
             lastSeenAt: new Date(),
           },

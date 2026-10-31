@@ -26,7 +26,7 @@ export class RouterSimulatorAdapter implements RouterAdapter {
       {
         macAddress: '4A:72:9D:31:AA:01',
         ipAddress: '192.168.1.101',
-        hostname: 'Panths-iPhone',
+        hostname: "Panth's Phone",
         vendor: 'Apple, Inc.',
         interface: 'wlan0',
         signalStrength: -48,
@@ -35,7 +35,7 @@ export class RouterSimulatorAdapter implements RouterAdapter {
       {
         macAddress: '3C:22:FB:44:BB:02',
         ipAddress: '192.168.1.102',
-        hostname: 'MacBook-Pro-M2',
+        hostname: 'Laptop',
         vendor: 'Apple, Inc.',
         interface: 'wlan0',
         signalStrength: -55,
@@ -44,7 +44,7 @@ export class RouterSimulatorAdapter implements RouterAdapter {
       {
         macAddress: '88:66:5A:77:CC:03',
         ipAddress: '192.168.1.103',
-        hostname: 'iPad-Air',
+        hostname: 'Family Tablet',
         vendor: 'Apple, Inc.',
         interface: 'wlan1',
         signalStrength: -62,
@@ -53,7 +53,7 @@ export class RouterSimulatorAdapter implements RouterAdapter {
       {
         macAddress: 'FC:F5:28:99:DD:04',
         ipAddress: '192.168.1.104',
-        hostname: 'LG-webOS-TV',
+        hostname: 'Smart TV',
         vendor: 'LG Electronics',
         interface: 'eth0',
         signalStrength: 0,
@@ -62,7 +62,7 @@ export class RouterSimulatorAdapter implements RouterAdapter {
       {
         macAddress: '70:85:C2:AA:EE:05',
         ipAddress: '192.168.1.105',
-        hostname: 'DESKTOP-GAMING',
+        hostname: 'Gaming PC',
         vendor: 'Micro-Star Int.',
         interface: 'eth1',
         signalStrength: 0,
